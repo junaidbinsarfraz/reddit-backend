@@ -20,13 +20,13 @@ public class AuthController {
         return new ResponseEntity<String>("User Registration Successful", HttpStatus.OK);
     }
 
-    @GetMapping("accountVerification")
+    @GetMapping("/accountVerification/{token}")
     public ResponseEntity<String> verifyAccount(@PathVariable String token) {
         try {
             this.authService.verifyToken(token);
             return new ResponseEntity<String>("Verified", HttpStatus.OK);
         } catch (SpringRedditException e) {
-            return new ResponseEntity<String>(e.getMessage(), HttpStatus.FORBIDDEN);
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 }
