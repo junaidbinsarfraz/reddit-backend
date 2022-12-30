@@ -1,5 +1,7 @@
 package com.demo.redditbackend.controller;
 
+import com.demo.redditbackend.dto.AuthenticationResponse;
+import com.demo.redditbackend.dto.LoginRequest;
 import com.demo.redditbackend.dto.SignupRequest;
 import com.demo.redditbackend.exception.SpringRedditException;
 import com.demo.redditbackend.service.AuthService;
@@ -28,5 +30,11 @@ public class AuthController {
         } catch (SpringRedditException e) {
             return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthenticationResponse> login(@RequestBody LoginRequest loginRequest) {
+        AuthenticationResponse response = this.authService.login(loginRequest);
+        return new ResponseEntity<AuthenticationResponse>(response, response == null ? HttpStatus.NOT_FOUND : HttpStatus.OK);
     }
 }

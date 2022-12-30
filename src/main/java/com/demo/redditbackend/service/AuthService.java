@@ -1,5 +1,7 @@
 package com.demo.redditbackend.service;
 
+import com.demo.redditbackend.dto.AuthenticationResponse;
+import com.demo.redditbackend.dto.LoginRequest;
 import com.demo.redditbackend.dto.SignupRequest;
 import com.demo.redditbackend.exception.SpringRedditException;
 import com.demo.redditbackend.model.NotificationEmail;
@@ -7,9 +9,14 @@ import com.demo.redditbackend.model.User;
 import com.demo.redditbackend.model.VerificationToken;
 import com.demo.redditbackend.repository.UserRepository;
 import com.demo.redditbackend.repository.VerificationTokenRepository;
+import com.demo.redditbackend.security.JwtProvider;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +33,8 @@ public class AuthService {
     private final UserRepository userRepository;
     private final VerificationTokenRepository verificationTokenRepository;
     private final MailService mailService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtProvider jwtProvider;
 
     @Transactional
     public void signup(SignupRequest signupRequest) {
@@ -76,5 +85,20 @@ public class AuthService {
         this.verificationTokenRepository.save(verificationToken);
 
         return token;
+    }
+
+    public AuthenticationResponse login(LoginRequest loginRequest) {
+        Authentication authentication = this.authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+        log.info(authentication.isAuthenticated() + "");
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        if(authentication.isAuthenticated()) {
+            try {
+                String token = this.jwtProvider.generateToken(authentication);
+                return new AuthenticationResponse(token, loginRequest.getUsername());
+            } catch (SpringRedditException e) {
+                log.info(e.getMessage());
+            }
+        }
+        return null;
     }
 }
