@@ -1,5 +1,6 @@
 package com.demo.redditbackend.config;
 
+import com.demo.redditbackend.security.JWTAuthFilter;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +13,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -25,6 +27,11 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    public JWTAuthFilter getJWTAuthFilter() {
+        return new JWTAuthFilter();
+    }
+
     @Bean(BeanIds.AUTHENTICATION_MANAGER)
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
@@ -36,6 +43,8 @@ public class SecurityConfig {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .authorizeRequests().requestMatchers("/api/auth/**").permitAll()
                 .anyRequest().authenticated();
+
+        http.addFilterBefore(getJWTAuthFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
