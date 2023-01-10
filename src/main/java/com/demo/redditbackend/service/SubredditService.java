@@ -1,6 +1,7 @@
 package com.demo.redditbackend.service;
 
 import com.demo.redditbackend.dto.SubredditDto;
+import com.demo.redditbackend.mapper.SubredditMapper;
 import com.demo.redditbackend.model.Subreddit;
 import com.demo.redditbackend.repository.SubredditRepository;
 import lombok.AllArgsConstructor;
@@ -17,31 +18,20 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class SubredditService {
     private final SubredditRepository subredditRepository;
+    private final SubredditMapper subredditMapper;
 
     @Transactional
     public Subreddit save(SubredditDto subredditDto) {
-        Subreddit subreddit = new Subreddit();
-
-        subreddit.setName(subredditDto.getName());
-        subreddit.setDescription(subredditDto.getDescription());
-        subreddit.setCreatedDate(Instant.now());
-
-        return this.subredditRepository.save(subreddit);
+        return this.subredditRepository.save(this.subredditMapper.mapDtoToSubreddit(subredditDto));
     }
 
     @Transactional(readOnly = true)
     public List<SubredditDto> getAll() {
-        return this.subredditRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
+        return this.subredditRepository.findAll().stream().map(subredditMapper::mapSubredditToDto).collect(Collectors.toList());
     }
 
-    private SubredditDto mapToDto(Subreddit subreddit) {
-        SubredditDto subredditDto = new SubredditDto();
-        subredditDto.setDescription(subreddit.getDescription());
-        subredditDto.setName(subreddit.getName());
-        subredditDto.setId(subreddit.getId());
-        subredditDto.setNumberOfPosts(subreddit.getPosts().size());
-
-        return subredditDto;
+    @Transactional(readOnly = true)
+    public SubredditDto getById(Long id) {
+        return this.subredditRepository.findById(id).map(subredditMapper::mapSubredditToDto).orElse(new SubredditDto());
     }
-
 }
