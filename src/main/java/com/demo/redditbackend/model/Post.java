@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
+import java.time.Instant;
+
 @Getter
 @Setter
 @Builder
@@ -22,4 +24,9 @@ public class Post {
     @Lob
     private String description;
     private Integer voteCount;
+    private Instant createdDate;
+    @ManyToOne
+    private User user;
+    @ManyToOne
+    private Subreddit subreddit;
 }
